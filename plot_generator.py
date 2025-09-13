@@ -77,8 +77,8 @@ class IndiaMapPlotter:
             
             # Set map extent to India
             ax.set_extent([INDIA_BOUNDS['lon_min'], INDIA_BOUNDS['lon_max'], 
-                          INDIA_BOUNDS['lat_min'], INDIA_BOUNDS['lat_max']], 
-                         crs=ccrs.PlateCarree())
+                            INDIA_BOUNDS['lat_min'], INDIA_BOUNDS['lat_max']], 
+                            crs=ccrs.PlateCarree())
             
             # Add map features
             ax.add_feature(cfeature.COASTLINE, linewidth=0.8, color='black')
@@ -153,14 +153,14 @@ class IndiaMapPlotter:
             # Add statistics box
             stats_text = self._create_stats_text(valid_data, units)
             ax.text(0.02, 0.98, stats_text, transform=ax.transAxes, 
-                   bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.9),
-                   verticalalignment='top', fontsize=10)
+                    bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.9),
+                    verticalalignment='top', fontsize=10)
             
             # Add color theme info
             theme_text = f"Color Theme: {COLOR_THEMES[color_theme]}"
             ax.text(0.98, 0.02, theme_text, transform=ax.transAxes,
-                   bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.8),
-                   horizontalalignment='right', verticalalignment='bottom', fontsize=9)
+                    bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray", alpha=0.8),
+                    horizontalalignment='right', verticalalignment='bottom', fontsize=9)
             
             plt.tight_layout()
             
@@ -209,22 +209,21 @@ class IndiaMapPlotter:
         # Create filename
         safe_var_name = var_name.replace('/', '_').replace(' ', '_').replace('.', '_')
         safe_display_name = display_name.replace('/', '_').replace(' ', '_').replace('₂', '2').replace('₃', '3').replace('.', '_')
-        
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_time_stamp = time_stamp.replace('-', '').replace(':', '').replace(' ', '_')
         
         filename_parts = [f"{safe_display_name}_India"]
         
         if pressure_level:
             filename_parts.append(f"{int(pressure_level)}hPa")
         
-        filename_parts.extend([color_theme, time_stamp, timestamp])
+        filename_parts.extend([color_theme, safe_time_stamp])
         filename = "_".join(filename_parts) + ".png"
         
         plot_path = self.plots_dir / filename
         
         # Save with high DPI
         fig.savefig(plot_path, dpi=300, bbox_inches='tight', 
-                   facecolor='white', edgecolor='none')
+                    facecolor='white', edgecolor='none')
         
         print(f"Plot saved: {plot_path}")
         return str(plot_path)
@@ -276,8 +275,8 @@ class IndiaMapPlotter:
                 
                 # Set map extent to India
                 ax.set_extent([INDIA_BOUNDS['lon_min'], INDIA_BOUNDS['lon_max'], 
-                              INDIA_BOUNDS['lat_min'], INDIA_BOUNDS['lat_max']], 
-                             crs=ccrs.PlateCarree())
+                                INDIA_BOUNDS['lat_min'], INDIA_BOUNDS['lat_max']], 
+                                crs=ccrs.PlateCarree())
                 
                 # Add map features
                 ax.add_feature(cfeature.COASTLINE, linewidth=0.6)
@@ -385,7 +384,8 @@ def test_plot_generator():
         'units': 'µg/m³',
         'lats': lats,
         'lons': lons,
-        'pressure_level': None
+        'pressure_level': None,
+        'timestamp_str': '2023-10-01 12:00:00',
     }
     
     plotter = IndiaMapPlotter()

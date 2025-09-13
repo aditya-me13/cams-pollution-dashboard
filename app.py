@@ -66,7 +66,7 @@ def index():
     )
     # Prepare for template: list of dicts with name and type
     recent_files = [
-        {'name': f.name[16:], 'type': 'upload'} for f in upload_files
+        {'name': f.name, 'type': 'upload'} for f in upload_files
     ] + [
         {'name': f.name, 'type': 'download'} for f in extracted_files
     ]
