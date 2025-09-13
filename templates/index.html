@@ -160,10 +160,10 @@
                 
                 <form action="/upload" method="post" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="file">Select File (.nc or .zip):</label>
+                        <label for="file">Select File (.nc):</label>
                         <input type="file" name="file" id="file" accept=".nc,.zip" required>
                         <div class="file-info">
-                            <strong>Supported formats:</strong> NetCDF (.nc), ZIP archives (.zip)<br>
+                            <strong>Supported formats:</strong> NetCDF (.nc)<br>
                             <strong>Maximum size:</strong> 500MB
                         </div>
                     </div>
@@ -196,7 +196,7 @@
             </div>
         </div>
         
-        {% if downloaded_files %}
+        <!-- {% if downloaded_files %}
         <div class="container">
             <h2>📦 Previously Downloaded Files</h2>
             <div class="download-list">
@@ -210,8 +210,24 @@
                 {% endfor %}
             </div>
         </div>
-        {% endif %}
+        {% endif %} -->
         
+            <div class="method-section">
+            <h2>🗂️ Method 3: Choose from Recent Files</h2>
+            <p>Select a previously uploaded or downloaded file for visualization.</p>
+            <form id="recentFileForm" action="" method="get" style="display: flex; gap: 10px; align-items: center;">
+                <select name="recent_file" id="recent_file" required style="flex: 1;">
+                    <option value="" disabled selected>Select a file...</option>
+                    {% for file in recent_files %}
+                        <option value="{{ file.name }}|{{ file.type }}">
+                            {{ file.name }} ({{ 'Downloaded' if file.type == 'download' else 'Uploaded' }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Analyze</button>
+            </form>
+        </div>
+
         <div class="container">
             <h2>📋 How to Use</h2>
             <ol style="line-height: 1.8;">
@@ -250,6 +266,16 @@
             if (!confirm('CAMS data download may take several minutes. Continue?')) {
                 e.preventDefault();
             }
+        });
+        
+        document.getElementById('recentFileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const val = document.getElementById('recent_file').value;
+            if (!val) return;
+            const [filename, filetype] = val.split('|');
+            // is_download param: true for download, false for upload
+            const is_download = (filetype === 'download') ? 'true' : 'false';
+            window.location.href = `/analyze/${encodeURIComponent(filename)}?is_download=${is_download}`;
         });
     </script>
 </body>

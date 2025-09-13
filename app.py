@@ -55,14 +55,29 @@ def str_to_bool(value):
 def index():
     """Main page - file upload or date selection"""
     downloaded_files = downloader.list_downloaded_files()
-    
-    # Pass the current date to the template for the date picker's max attribute
+    # List files in uploads and downloads/extracted
+    upload_files = sorted(
+        [f for f in Path(app.config['UPLOAD_FOLDER']).glob('*') if f.is_file()],
+        key=lambda x: x.stat().st_mtime, reverse=True
+    )
+    extracted_files = sorted(
+        [f for f in Path('downloads/extracted').glob('*') if f.is_file()],
+        key=lambda x: x.stat().st_mtime, reverse=True
+    )
+    # Prepare for template: list of dicts with name and type
+    recent_files = [
+        {'name': f.name[16:], 'type': 'upload'} for f in upload_files
+    ] + [
+        {'name': f.name, 'type': 'download'} for f in extracted_files
+    ]
     current_date = datetime.now().strftime('%Y-%m-%d')
-    
-    return render_template('index.html', 
-                         downloaded_files=downloaded_files,
-                         cds_ready=downloader.is_client_ready(),
-                         current_date=current_date)
+    return render_template(
+        'index.html',
+        downloaded_files=downloaded_files,
+        cds_ready=downloader.is_client_ready(),
+        current_date=current_date,
+        recent_files=recent_files
+    )
 
 
 @app.route('/upload', methods=['POST'])
