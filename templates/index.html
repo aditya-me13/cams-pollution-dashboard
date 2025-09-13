@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAMS Air Pollution Visualization</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .method-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        input[type="file"], select, input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="file"]:focus, select:focus, input[type="date"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .btn:hover { background: #2980b9; }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .info-box {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-ready { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .file-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .download-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .download-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        .download-item:last-child { border-bottom: none; }
+        .cleanup-section {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .two-column { grid-template-columns: 1fr; }
+            body { padding: 10px; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 CAMS Air Pollution Visualization</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="info-box">
+            <strong>📡 System Status:</strong>
+            <span class="status-indicator {% if cds_ready %}status-ready{% else %}status-error{% endif %}">
+                {% if cds_ready %}✅ CDS API Ready{% else %}❌ CDS API Not Configured{% endif %}
+            </span>
+            {% if not cds_ready %}
+                <p style="margin: 10px 0 0 0; font-size: 14px; color: #721c24;">
+                    Please create a .cdsapirc file with your CDS credentials to enable data download.
+                </p>
+            {% endif %}
+        </div>
+        
+        <div class="two-column">
+            <div class="method-section">
+                <h2>📁 Method 1: Upload File</h2>
+                <p>Upload your own NetCDF (.nc) or ZIP file containing CAMS data</p>
+                
+                <form action="/upload" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="file">Select File (.nc or .zip):</label>
+                        <input type="file" name="file" id="file" accept=".nc,.zip" required>
+                        <div class="file-info">
+                            <strong>Supported formats:</strong> NetCDF (.nc), ZIP archives (.zip)<br>
+                            <strong>Maximum size:</strong> 500MB
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">📤 Upload & Analyze</button>
+                </form>
+            </div>
+            
+            <div class="method-section">
+                <h2>📅 Method 2: Download by Date</h2>
+                <p>Download CAMS data for a specific date (requires CDS API)</p>
+                
+                <form action="/download_date" method="post">
+                    <div class="form-group">
+                        <label for="date_input">Select Date (YYYY-MM-DD):</label>
+                        <input type="date" name="date" id="date_input" required
+                            min="2015-01-01" max="{{ current_date }}">
+                    </div>
+                    
+                    <button type="submit" class="btn" id="download_btn" {% if not cds_ready %}disabled{% endif %}>
+                        ⬇️ Download & Analyze
+                    </button>
+                    
+                    {% if not cds_ready %}
+                        <p style="margin-top: 10px; font-size: 14px; color: #721c24;">
+                            CDS API configuration required
+                        </p>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        
+        {% if downloaded_files %}
+        <div class="container">
+            <h2>📦 Previously Downloaded Files</h2>
+            <div class="download-list">
+                {% for file in downloaded_files %}
+                <div class="download-item">
+                    <div>
+                        <strong>{{ file.date }}</strong> 
+                        <span style="color: #666;">({{ "%.1f"|format(file.size_mb) }} MB)</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="container">
+            <h2>📋 How to Use</h2>
+            <ol style="line-height: 1.8;">
+                <li><strong>Choose your method:</strong> Upload your own file or download data by date</li>
+                <li><strong>File Analysis:</strong> The system will detect air pollution variables in your data</li>
+                <li><strong>Variable Selection:</strong> Choose which pollutant to visualize and select pressure level (for atmospheric variables)</li>
+                <li><strong>Visualization:</strong> Generate and view the pollution map over India with your preferred color theme</li>
+            </ol>
+            
+            <div class="info-box">
+                <strong>💡 Supported Variables:</strong>
+                PM2.5, PM10, PM1, NO₂, SO₂, O₃, CO, NO, NH₃, Total Column measurements, and more
+            </div>
+        </div>
+        
+        <div class="cleanup-section">
+            <h3>🧹 Maintenance</h3>
+            <p>Clean up old files to free up disk space</p>
+            <a href="/cleanup" class="btn" style="font-size: 14px; padding: 8px 16px;">Clean Old Files</a>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('file').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const maxSize = 500 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert('File size exceeds 500MB limit. Please choose a smaller file.');
+                    this.value = '';
+                }
+            }
+        });
+        
+        document.querySelector('form[action="/download_date"]').addEventListener('submit', function(e) {
+            if (!confirm('CAMS data download may take several minutes. Continue?')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

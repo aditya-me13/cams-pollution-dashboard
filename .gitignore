@@ -1,0 +1,11 @@
+.cdsapirc
+__pycache__/
+
+# Any file in these folders should be ignored.
+static/
+plots/
+uploads/
+downloads/
+
+
+

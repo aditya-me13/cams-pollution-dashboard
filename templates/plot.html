@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ plot_info.variable }} - CAMS Air Pollution Map</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .info-section, .plot-section, .action-section, .technical-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { background: #2980b9; }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-download {
+            background: #28a745;
+        }
+        .btn-download:hover {
+            background: #218838;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .plot-container {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+        }
+        .plot-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .plot-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .info-grid, .stats-grid, .technical-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        .info-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e1e1e1;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+            text-align: center;
+        }
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3498db;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .units-note {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .action-section .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .technical-section summary {
+            cursor: pointer;
+            outline: none;
+            color: #34495e;
+        }
+        .technical-section h3 {
+            display: inline;
+        }
+        .technical-content {
+            padding-top: 10px;
+        }
+        .technical-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .technical-grid ul {
+            padding-left: 20px;
+            margin-top: 5px;
+            list-style-type: '• ';
+        }
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+        .fullscreen-content {
+            position: relative;
+            max-width: 95%;
+            max-height: 95%;
+        }
+        .fullscreen-image {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .close-fullscreen {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .close-fullscreen:hover, .close-fullscreen:focus {
+            color: #bbb;
+            text-decoration: none;
+        }
+        @media (max-width: 768px) {
+            .two-column, .technical-grid {
+                grid-template-columns: 1fr;
+            }
+            .container { padding: 20px; }
+            .action-section .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ {{ plot_info.variable }} Visualization</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="breadcrumb">
+            <a href="{{ url_for('index') }}">🏠 Home</a> → 
+            <a href="javascript:history.back()">Variable Selection</a> → 
+            Visualization
+        </div>
+        
+        <div class="plot-section">
+            <div class="plot-container">
+                <img src="{{ url_for('serve_plot', filename=plot_filename) }}" 
+                     alt="{{ plot_info.variable }} Map" 
+                     class="plot-image"
+                     id="plotImage">
+                
+                <div class="plot-controls">
+                    <button onclick="downloadPlot()" class="btn btn-download">
+                        💾 Download Image
+                    </button>
+                    <button onclick="toggleFullscreen()" class="btn btn-secondary">
+                        🔍 View Fullscreen
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="two-column">
+            <div class="info-section">
+                <h2>📊 Variable Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Variable:</strong>
+                        <span>{{ plot_info.variable }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Units:</strong>
+                        <span>{{ plot_info.units if plot_info.units else 'dimensionless' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Data Shape:</strong>
+                        <span>{{ plot_info.shape }}</span>
+                    </div>
+                    {% if plot_info.pressure_level %}
+                    <div class="info-item">
+                        <strong>Pressure Level:</strong>
+                        <span>{{ plot_info.pressure_level }} hPa</span>
+                    </div>
+                    {% endif %}
+                    <div class="info-item">
+                        <strong>Color Theme:</strong>
+                        <span>{{ plot_info.color_theme }}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Generated:</strong>
+                        <span>{{ plot_info.generated_time }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h2>📈 Data Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ "%.3f"|format(plot_info.data_range.min) }}</div>
+                        <div class="stat-label">Minimum</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ "%.3f"|format(plot_info.data_range.max) }}</div>
+                        <div class="stat-label">Maximum</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ "%.3f"|format(plot_info.data_range.mean) }}</div>
+                        <div class="stat-label">Average</div>
+                    </div>
+                </div>
+                
+                {% if plot_info.units %}
+                <p class="units-note">All values in {{ plot_info.units }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="action-section">
+            <h2>🛠️ Actions</h2>
+            <div class="button-group">
+                <a href="javascript:history.back()" class="btn btn-secondary">
+                    ← Create Another Visualization
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                    🏠 Back to Home
+                </a>
+                <button onclick="sharePlot()" class="btn">
+                    📤 Share Plot
+                </button>
+            </div>
+        </div>
+        
+        <div class="technical-section">
+            <details>
+                <summary><h3>🔧 Technical Details</h3></summary>
+                <div class="technical-content">
+                    <div class="technical-grid">
+                        <div>
+                            <strong>File Information:</strong>
+                            <ul>
+                                <li>Plot filename: {{ plot_filename }}</li>
+                                <li>Generated: {{ plot_info.generated_time }}</li>
+                                <li>Resolution: High (300 DPI)</li>
+                                <li>Format: PNG</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <strong>Map Details:</strong>
+                            <ul>
+                                <li>Projection: PlateCarree</li>
+                                <li>Region: India (6°N-38°N, 68°E-98°E)</li>
+                                <li>Features: Coastlines, borders, states</li>
+                                <li>Gridlines: Enabled</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+    
+    <div id="fullscreenModal" class="fullscreen-modal">
+        <div class="fullscreen-content">
+            <button class="close-fullscreen" onclick="closeFullscreen()">&times;</button>
+            <img src="{{ url_for('serve_plot', filename=plot_filename) }}" 
+                 alt="{{ plot_info.variable }} Map"
+                 class="fullscreen-image">
+        </div>
+    </div>
+    
+    <script>
+        function downloadPlot() {
+            const link = document.createElement('a');
+            link.href = "{{ url_for('serve_plot', filename=plot_filename) }}";
+            link.download = '{{ plot_filename }}';
+            link.click();
+        }
+        
+        function toggleFullscreen() {
+            document.getElementById('fullscreenModal').style.display = 'flex';
+        }
+        
+        function closeFullscreen() {
+            document.getElementById('fullscreenModal').style.display = 'none';
+        }
+        
+        function sharePlot() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '{{ plot_info.variable }} - Air Pollution Map',
+                    text: 'Check out this air pollution visualization over India',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback: copy URL to clipboard
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                        alert('URL copied to clipboard!');
+                    });
+                } else {
+                    alert('Share URL: ' + window.location.href);
+                }
+            }
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeFullscreen();
+            } else if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
+            } else if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                downloadPlot();
+            }
+        });
+        
+        // Click outside to close fullscreen
+        document.getElementById('fullscreenModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFullscreen();
+            }
+        });
+    </script>
+</body>
+</html>

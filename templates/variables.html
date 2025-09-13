@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variable Selection - CAMS Air Pollution</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .method-section, .form-section, .pressure-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        input[type="file"], select, input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="file"]:focus, select:focus, input[type="date"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { background: #2980b9; }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .info-box {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-ready { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .file-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .variable-info {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .variable-info h4 {
+            margin-top: 0;
+            color: #34495e;
+        }
+        .info-text {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .color-preview-section {
+            margin-top: 15px;
+        }
+        .color-gradient {
+            width: 100%;
+            height: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .loading-message {
+            text-align: center;
+            margin-top: 20px;
+            color: #34495e;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 Variable Selection</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="breadcrumb">
+            <a href="{{ url_for('index') }}">🏠 Home</a> → Variable Selection
+        </div>
+        
+        <form action="/visualize" method="post" id="visualizeForm">
+            <input type="hidden" name="filename" value="{{ filename }}">
+            <input type="hidden" name="is_download" value="{{ is_download }}">
+            
+            <div class="form-section">
+                <h2>📊 Select Air Pollution Variable</h2>
+                <p>Found {{ variables|length }} air pollution variable(s) in your data. Select one below:</p>
+                
+                <div class="form-group">
+                    <label for="variable">Choose Variable:</label>
+                    <select name="variable" id="variable" required onchange="handleVariableChange()">
+                        <option value="">-- Select a variable --</option>
+                        {% for var in variables %}
+                            <option value="{{ var.name }}" 
+                                    data-type="{{ var.type }}" 
+                                    data-display="{{ var.display_name }}"
+                                    data-units="{{ var.units }}"
+                                    data-shape="{{ var.shape }}">
+                                {{ var.display_name }} ({{ var.name }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="variable-info" id="variableInfo" style="display: none;">
+                    <h4>Selected Variable Details:</h4>
+                    <div id="variableDetails"></div>
+                </div>
+            </div>
+
+            <div class="pressure-section" id="pressureSection" style="display: none;">
+                <h3>🌡️ Pressure Level Selection</h3>
+                <p>This is an atmospheric variable. Please select a pressure level:</p>
+                
+                <div class="form-group">
+                    <label for="pressure_level">Pressure Level (hPa):</label>
+                    <select name="pressure_level" id="pressure_level">
+                        <option value="">-- Select pressure level --</option>
+                        <option value="50">50 hPa (Stratosphere - ~20km)</option>
+                        <option value="100">100 hPa (Tropopause - ~16km)</option>
+                        <option value="150">150 hPa (Upper Troposphere - ~14km)</option>
+                        <option value="200">200 hPa (Upper Troposphere - ~12km)</option>
+                        <option value="250">250 hPa (Upper Troposphere - ~10km)</option>
+                        <option value="300">300 hPa (Upper Troposphere - ~9km)</option>
+                        <option value="400">400 hPa (Mid Troposphere - ~7km)</option>
+                        <option value="500">500 hPa (Mid Troposphere - ~5km)</option>
+                        <option value="600">600 hPa (Lower Troposphere - ~4km)</option>
+                        <option value="700">700 hPa (Lower Troposphere - ~3km)</option>
+                        <option value="850" selected>850 hPa (Lower Troposphere - ~1.5km)</option>
+                        <option value="925">925 hPa (Boundary Layer - ~800m)</option>
+                        <option value="1000">1000 hPa (Surface Level)</option>
+                    </select>
+                    <div class="info-text">
+                        💡 <strong>Tip:</strong> 850 hPa is commonly used for atmospheric analysis (pre-selected)
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Time Selection -->
+            <div class="form-section" id="timeSection" style="display: none;">
+                <h3>⏰ Time Selection</h3>
+                <p>Multiple time steps available. Please select a time:</p>
+                
+                <div class="form-group">
+                    <label for="time_index">Available Times:</label>
+                    <select name="time_index" id="time_index">
+                        <option value="">-- Loading available times --</option>
+                    </select>
+                    <div class="info-text">
+                        💡 <strong>Tip:</strong> Latest time is usually pre-selected
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2>🎨 Color Theme</h2>
+                <div class="form-group">
+                    <label for="color_theme">Select Color Scheme:</label>
+                    <select name="color_theme" id="color_theme" onchange="updateColorPreview()">
+                        {% for theme_key, theme_name in color_themes.items() %}
+                            <option value="{{ theme_key }}" 
+                                    {% if theme_key == 'viridis' %}selected{% endif %}>
+                                {{ theme_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="color-preview-section">
+                    <p><strong>Preview:</strong> <span id="colorPreviewText">Viridis</span></p>
+                    <div class="color-gradient" id="colorPreview"></div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="button-group">
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">← Back to Home</a>
+                    <button type="submit" class="btn" id="submitBtn">
+                        🗺️ Generate Map Visualization
+                    </button>
+                </div>
+                
+                <div class="loading-message" id="loadingMessage" style="display: none;">
+                    <p>🔄 Generating map visualization... This may take a moment.</p>
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        function handleVariableChange() {
+            const select = document.getElementById('variable');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption.value) {
+                // Show variable info
+                const info = document.getElementById('variableInfo');
+                const details = document.getElementById('variableDetails');
+                
+                details.innerHTML = `
+                    <strong>Name:</strong> ${selectedOption.dataset.display}<br>
+                    <strong>Variable ID:</strong> ${selectedOption.value}<br>
+                    <strong>Type:</strong> ${selectedOption.dataset.type}<br>
+                    <strong>Units:</strong> ${selectedOption.dataset.units || 'dimensionless'}<br>
+                    <strong>Shape:</strong> ${selectedOption.dataset.shape}
+                `;
+                info.style.display = 'block';
+                
+                // Show/hide pressure level section
+                const pressureSection = document.getElementById('pressureSection');
+                if (selectedOption.dataset.type === 'atmospheric') {
+                    pressureSection.style.display = 'block';
+                    loadPressureLevels(selectedOption.value);
+                } else {
+                    pressureSection.style.display = 'none';
+                }
+                
+                // Always load available times
+                const timeSection = document.getElementById('timeSection');
+                timeSection.style.display = 'block';
+                loadAvailableTimes(selectedOption.value);
+                
+            } else {
+                document.getElementById('variableInfo').style.display = 'none';
+                document.getElementById('pressureSection').style.display = 'none';
+                document.getElementById('timeSection').style.display = 'none';
+            }
+        }
+        function loadPressureLevels(varName) {
+            const pressureSelect = document.getElementById('pressure_level');
+            const originalHTML = pressureSelect.innerHTML;
+            
+            pressureSelect.innerHTML = '<option value="">Loading pressure levels...</option>';
+            
+            const filename = "{{ filename }}";
+            const isDownload = {{ 'true' if is_download else 'false' }};
+            
+            fetch(`/get_pressure_levels/${filename}/${varName}?is_download=${isDownload}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.pressure_levels && data.pressure_levels.length > 0) {
+                        pressureSelect.innerHTML = '<option value="">-- Select pressure level --</option>';
+                        
+                        data.pressure_levels.forEach(level => {
+                            const option = document.createElement('option');
+                            option.value = level;
+                            option.textContent = `${level} hPa`;
+                            
+                            // Select 850 hPa as default
+                            if (level == 850) {
+                                option.selected = true;
+                            }
+                            
+                            pressureSelect.appendChild(option);
+                        });
+                    } else {
+                        console.log(data.error);
+                        // Fallback to original options if API fails
+                        pressureSelect.innerHTML = originalHTML;
+                    }
+                })
+                .catch(error => {
+                    console.log('Using default pressure levels');
+                    pressureSelect.innerHTML = originalHTML;
+                });
+        }
+        
+        function loadAvailableTimes(varName) {
+            const timeSelect = document.getElementById('time_index');
+            const originalHTML = timeSelect.innerHTML;
+            
+            timeSelect.innerHTML = '<option value="">Loading available times...</option>';
+            
+            const filename = "{{ filename }}";
+            const isDownload = {{ 'true' if is_download else 'false' }};
+            
+            fetch(`/get_available_times/${filename}/${varName}?is_download=${isDownload}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.times && data.times.length > 0) {
+                        timeSelect.innerHTML = '<option value="">-- Select time --</option>';
+                        
+                        data.times.forEach(time => {
+                            const option = document.createElement('option');
+                            option.value = time.index;
+                            option.textContent = time.display;
+                            
+                            // Select latest time as default (last index)
+                            if (time.index === data.times.length - 1) {
+                                option.selected = true;
+                            }
+                            
+                            timeSelect.appendChild(option);
+                        });
+                    } else {
+                        console.log(data.error);
+                        // Single time step or error
+                        timeSelect.innerHTML = '<option value="0" selected>Latest Available</option>';
+                    }
+                })
+                .catch(error => {
+                    console.log('Using default time selection');
+                    timeSelect.innerHTML = '<option value="0" selected>Latest Available</option>';
+                });
+        }
+        
+        // Color theme preview
+        const colorMaps = {
+            'viridis': 'linear-gradient(to right, #440154, #414487, #2a788e, #22a884, #7ad151, #fde725)',
+            'plasma': 'linear-gradient(to right, #0d0887, #6a00a8, #b12a90, #e16462, #fca636, #f0f921)',
+            'YlOrRd': 'linear-gradient(to right, #ffffcc, #ffeda0, #fed976, #feb24c, #fd8d3c, #e31a1c)',
+            'Blues': 'linear-gradient(to right, #f7fbff, #deebf7, #c6dbef, #9ecae1, #6baed6, #2171b5)',
+            'Reds': 'linear-gradient(to right, #fff5f0, #fee0d2, #fcbba1, #fc9272, #fb6a4a, #de2d26)',
+            'Greens': 'linear-gradient(to right, #f7fcf5, #e5f5e0, #c7e9c0, #a1d99b, #74c476, #238b45)',
+            'Oranges': 'linear-gradient(to right, #fff5eb, #fee6ce, #fdd0a2, #fdae6b, #fd8d3c, #d94701)',
+            'Purples': 'linear-gradient(to right, #fcfbfd, #efedf5, #dadaeb, #bcbddc, #9e9ac8, #756bb1)',
+            'inferno': 'linear-gradient(to right, #000004, #420a68, #932667, #dd513a, #fca50a, #fcffa4)',
+            'magma': 'linear-gradient(to right, #000004, #3b0f70, #8c2981, #de4968, #fe9f6d, #fcfdbf)',
+            'cividis': 'linear-gradient(to right, #00224e, #123570, #3b496c, #575d6d, #707173, #8a8678)',
+            'coolwarm': 'linear-gradient(to right, #3b4cc0, #688aef, #b7d4f1, #f7f7f7, #f4b2a6, #dc7176, #a50026)',
+            'RdYlBu': 'linear-gradient(to right, #a50026, #d73027, #f46d43, #fdae61, #fee090, #e0f3f8, #abd9e9, #74add1, #4575b4, #313695)',
+            'Spectral': 'linear-gradient(to right, #9e0142, #d53e4f, #f46d43, #fdae61, #fee08b, #e6f598, #abdda4, #66c2a5, #3288bd, #5e4fa2)'
+        };
+        
+        function updateColorPreview() {
+            const theme = document.getElementById('color_theme').value;
+            const preview = document.getElementById('colorPreview');
+            const previewText = document.getElementById('colorPreviewText');
+            
+            previewText.textContent = document.getElementById('color_theme').selectedOptions[0].text;
+            
+            if (colorMaps[theme]) {
+                preview.style.background = colorMaps[theme];
+            } else {
+                preview.style.background = colorMaps['viridis'];
+            }
+        }
+        
+        // Initialize color preview
+        updateColorPreview();
+        
+        // Form submission with loading state
+        document.getElementById('visualizeForm').addEventListener('submit', function(e) {
+            const selectedVar = document.getElementById('variable').value;
+            if (!selectedVar) {
+                alert('Please select a variable first!');
+                e.preventDefault();
+                return;
+            }
+            
+            // Check if atmospheric variable has pressure level selected
+            const varType = document.getElementById('variable').selectedOptions[0].dataset.type;
+            if (varType === 'atmospheric') {
+                const pressureLevel = document.getElementById('pressure_level').value;
+                if (!pressureLevel) {
+                    alert('Please select a pressure level for atmospheric variables!');
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            const timeIndex = document.getElementById('time_index').value;
+            if (!timeIndex) {
+                alert('Please select a time step!');
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading message
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').textContent = '⏳ Generating...';
+        });
+        
+        // Auto-select first variable if only one available
+        {% if variables|length == 1 %}
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('variable').selectedIndex = 1;
+                handleVariableChange();
+            }, 100);
+        });
+        {% endif %}
+    </script>
+</body>
+</html>
