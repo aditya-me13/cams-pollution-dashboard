@@ -313,8 +313,6 @@ class NetCDFProcessor:
             'timestamp_str': timestamp_str,
             'dataset_type': dataset_type
         }
-
-        print(metadata)
         
         return data_values, metadata
     

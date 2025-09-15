@@ -1,4 +1,5 @@
 .cdsapirc
+.DS_Store
 __pycache__/
 
 # Any file in these folders should be ignored.
