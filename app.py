@@ -1,14 +1,13 @@
-# app.py
 # Flask web application for CAMS air pollution visualization
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
-from werkzeug.utils import secure_filename
 import os
 import json
-from pathlib import Path
-from datetime import datetime, timedelta
 import traceback
-import calendar
+from pathlib import Path
+
+from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
 
 # Import our custom modules
 from data_processor import NetCDFProcessor, analyze_netcdf_file

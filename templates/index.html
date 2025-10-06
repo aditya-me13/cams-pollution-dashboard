@@ -156,18 +156,17 @@
         <div class="two-column">
             <div class="method-section">
                 <h2>📁 Method 1: Upload File</h2>
-                <p>Upload your own NetCDF (.nc) or ZIP file containing CAMS data</p>
+                <p>Upload your own NetCDF (.nc) or ZIP (.zip) file containing CAMS data</p>
                 
                 <form action="/upload" method="post" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="file">Select File (.nc):</label>
+                        <label for="file">Select File (.nc or .zip):</label>
                         <input type="file" name="file" id="file" accept=".nc,.zip" required>
                         <div class="file-info">
-                            <strong>Supported formats:</strong> NetCDF (.nc)<br>
+                            <strong>Supported formats:</strong> NetCDF (.nc) or ZIP (.zip)<br>
                             <strong>Maximum size:</strong> 500MB
                         </div>
                     </div>
-                    
                     <button type="submit" class="btn">📤 Upload & Analyze</button>
                 </form>
             </div>

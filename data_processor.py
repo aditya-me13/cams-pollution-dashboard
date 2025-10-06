@@ -1,17 +1,20 @@
-# data_processor.py
 # NetCDF file processing and air pollution variable detection
+
+import os
+import zipfile
+import warnings
+import tempfile
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-import zipfile
-import os
-from pathlib import Path
-from constants import AIR_POLLUTION_VARIABLES, PRESSURE_LEVELS
-from datetime import datetime
-import warnings
-warnings.filterwarnings('ignore')
 
+from pathlib import Path
+from datetime import datetime
+
+# Imports from our Modules
+from constants import AIR_POLLUTION_VARIABLES, PRESSURE_LEVELS
+warnings.filterwarnings('ignore')
 
 class NetCDFProcessor:
     def __init__(self, file_path):
@@ -58,22 +61,31 @@ class NetCDFProcessor:
             # Load surface data if available
             if surface_file:
                 with zf.open(surface_file) as f:
-                    self.surface_dataset = xr.open_dataset(f, engine='netcdf4')
-                    print(f"Loaded surface data: {surface_file}")
+                    with tempfile.NamedTemporaryFile(suffix='.nc') as tmp:
+                        tmp.write(f.read())
+                        tmp.flush()
+                        self.surface_dataset = xr.open_dataset(tmp.name, engine='netcdf4')
+                        print(f"Loaded surface data: {surface_file}")
             
             # Load atmospheric data if available
             if atmospheric_file:
                 with zf.open(atmospheric_file) as f:
-                    self.atmospheric_dataset = xr.open_dataset(f, engine='netcdf4')
-                    print(f"Loaded atmospheric data: {atmospheric_file}")
+                    with tempfile.NamedTemporaryFile(suffix='.nc') as tmp:
+                        tmp.write(f.read())
+                        tmp.flush()
+                        self.atmospheric_dataset = xr.open_dataset(tmp.name, engine='netcdf4')
+                        print(f"Loaded atmospheric data: {atmospheric_file}")
             
             # If no specific files found, try to load the first .nc file
             if not surface_file and not atmospheric_file:
                 nc_files = [f for f in zip_contents if f.endswith('.nc')]
                 if nc_files:
                     with zf.open(nc_files[0]) as f:
-                        self.dataset = xr.open_dataset(f, engine='netcdf4')
-                        print(f"Loaded dataset: {nc_files[0]}")
+                        with tempfile.NamedTemporaryFile(suffix='.nc') as tmp:
+                            tmp.write(f.read())
+                            tmp.flush()
+                            self.dataset = xr.open_dataset(tmp.name, engine='netcdf4')
+                            print(f"Loaded dataset: {nc_files[0]}")
                 else:
                     raise ValueError("No NetCDF files found in ZIP")
         
