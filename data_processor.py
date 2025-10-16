@@ -331,29 +331,29 @@ class NetCDFProcessor:
     def _convert_units(self, data, original_units, target_units):
         """Convert data units for air pollution variables"""
         data_converted = data.copy()
-        
+
         if original_units and target_units:
             orig_lower = original_units.lower()
             target_lower = target_units.lower()
-            
+
             # kg/m³ to µg/m³
             if 'kg' in orig_lower and 'µg' in target_lower:
                 data_converted = data_converted * 1e9
                 print(f"Converting from {original_units} to {target_units} (×1e9)")
-            
+
             # kg/m³ to mg/m³
             elif 'kg' in orig_lower and 'mg' in target_lower:
                 data_converted = data_converted * 1e6
                 print(f"Converting from {original_units} to {target_units} (×1e6)")
-            
+
             # mol/m² conversions (keep as is)
             elif 'mol' in orig_lower:
                 print(f"Units {original_units} kept as is")
-            
+
             # No unit (dimensionless) - keep as is
             elif target_units == '':
                 print("Dimensionless variable - no unit conversion")
-        
+
         return data_converted
     
     def get_available_times(self, variable_name):

@@ -49,6 +49,32 @@
             background: #bdc3c7;
             cursor: not-allowed;
         }
+
+        .btn.loading {
+            background: #bdc3c7 !important;
+            cursor: not-allowed !important;
+            position: relative;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         .btn-secondary {
             background: #6c757d;
         }
@@ -222,8 +248,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>🗺️ {{ plot_info.variable }} Visualization</h1>
-        
+        <h1>{{ plot_info.variable }} Visualization</h1>
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -231,10 +257,10 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
+
         <div class="breadcrumb">
-            <a href="{{ url_for('index') }}">🏠 Home</a> → 
-            <a href="javascript:history.back()">Variable Selection</a> → 
+            <a href="{{ url_for('index') }}">Home</a> →
+            <a href="javascript:history.back()">Variable Selection</a> →
             Visualization
         </div>
         
@@ -247,10 +273,10 @@
                 
                 <div class="plot-controls">
                     <button onclick="downloadPlot()" class="btn btn-download">
-                        💾 Download Image
+                        Download Image
                     </button>
                     <button onclick="toggleFullscreen()" class="btn btn-secondary">
-                        🔍 View Fullscreen
+                        View Fullscreen
                     </button>
                 </div>
             </div>
@@ -258,7 +284,7 @@
         
         <div class="two-column">
             <div class="info-section">
-                <h2>📊 Variable Information</h2>
+                <h2>Variable Information</h2>
                 <div class="info-grid">
                     <div class="info-item">
                         <strong>Variable:</strong>
@@ -290,7 +316,7 @@
             </div>
             
             <div class="info-section">
-                <h2>📈 Data Statistics</h2>
+                <h2>Data Statistics</h2>
                 <div class="stats-grid">
                     <div class="stat-item">
                         <div class="stat-value">{{ "%.3f"|format(plot_info.data_range.min) }}</div>
@@ -313,23 +339,23 @@
         </div>
         
         <div class="action-section">
-            <h2>🛠️ Actions</h2>
+            <h2>Actions</h2>
             <div class="button-group">
                 <a href="javascript:history.back()" class="btn btn-secondary">
                     ← Create Another Visualization
                 </a>
                 <a href="{{ url_for('index') }}" class="btn btn-secondary">
-                    🏠 Back to Home
+                    Back to Home
                 </a>
                 <button onclick="sharePlot()" class="btn">
-                    📤 Share Plot
+                    Share Plot
                 </button>
             </div>
         </div>
-        
+
         <div class="technical-section">
             <details>
-                <summary><h3>🔧 Technical Details</h3></summary>
+                <summary><h3>Technical Details</h3></summary>
                 <div class="technical-content">
                     <div class="technical-grid">
                         <div>
@@ -367,10 +393,25 @@
     
     <script>
         function downloadPlot() {
+            const downloadBtn = document.querySelector('.btn-download');
+            const originalText = downloadBtn.textContent;
+
+            // Show loading state
+            downloadBtn.classList.add('loading');
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '';
+
             const link = document.createElement('a');
             link.href = "{{ url_for('serve_plot', filename=plot_filename) }}";
             link.download = '{{ plot_filename }}';
             link.click();
+
+            // Reset button after a short delay
+            setTimeout(() => {
+                downloadBtn.classList.remove('loading');
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = originalText;
+            }, 1000);
         }
         
         function toggleFullscreen() {
