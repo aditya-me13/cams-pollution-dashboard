@@ -1,281 +1,521 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAMS Air Pollution Visualization</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
-        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .method-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-        input[type="file"], select, input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        input[type="file"]:focus, select:focus, input[type="date"]:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        .btn {
-            background: #3498db;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-        .btn:hover { background: #2980b9; }
-        .btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-        }
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            font-weight: 500;
-        }
-        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
-        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
-        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
-        .info-box {
-            background: #e8f4fd;
-            border: 1px solid #bee5eb;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .status-indicator {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 3px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 10px;
-        }
-        .status-ready { background: #d4edda; color: #155724; }
-        .status-error { background: #f8d7da; color: #721c24; }
-        .file-info {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        .download-list {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .download-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: between;
-            align-items: center;
-        }
-        .download-item:last-child { border-bottom: none; }
-        .cleanup-section {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 768px) {
-            .two-column { grid-template-columns: 1fr; }
-            body { padding: 10px; }
-            .container { padding: 20px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAMS Air Pollution Visualization</title>
+  <style>
+    /* ====== Global Layout ====== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f5f7fa;
+      color: #2c3e50;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background: #fff;
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+
+    /* ====== Typography ====== */
+    h1, h2, h3 {
+      margin-top: 0;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: #1b263b;
+      margin-bottom: 10px;
+    }
+    h2 {
+      font-size: 1.4rem;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: #2c3e50;
+    }
+    p {
+      line-height: 1.6;
+      color: #555;
+    }
+
+    /* ====== Alerts ====== */
+    .alert {
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .alert-success { background: #e8f8ed; border: 1px solid #b7ebc6; color: #256029; }
+    .alert-error { background: #fdecea; border: 1px solid #f5c2c7; color: #842029; }
+    .alert-warning { background: #fff4e5; border: 1px solid #ffe58f; color: #664d03; }
+
+    /* ====== Feature Sections ====== */
+    .feature-header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 15px;
+    }
+    .feature-header h2 {
+      border-bottom: none;
+      margin-bottom: 8px;
+      font-size: 1.5rem;
+    }
+    .feature-header p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+
+    /* ====== Method Boxes ====== */
+    .method-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 4px solid #3498db;
+      margin-bottom: 20px;
+    }
+
+    .form-group { margin-bottom: 15px; }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #2c3e50;
+    }
+    input[type="file"], select, input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input:focus, select:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+
+    /* ====== Buttons ====== */
+    .btn {
+      display: inline-block;
+      background: #3498db;
+      color: #fff;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .btn:hover { background: #2d83c6; }
+    .btn:disabled { background: #bdc3c7; cursor: not-allowed; }
+    .btn-primary {
+      background: #6ba6f8;
+    }
+    .btn-primary:hover {
+      background: #4f8ef5;
+    }
+    .btn-small {
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+    .btn-large {
+      padding: 15px 30px;
+      font-size: 16px;
+    }
+
+    /* ====== Lists and Info Boxes ====== */
+    .file-info, .info-box {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-size: 14px;
+      color: #555;
+      margin-top: 10px;
+    }
+
+    .download-list {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    .download-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .download-item:last-child { border-bottom: none; }
+
+    /* ====== Aurora Section ====== */
+    .aurora-header h2 { color: #2f40f8; }
+    .aurora-section {
+      background: #f8f9fa;
+      border-left: 4px solid #2f40f8;
+      padding: 25px;
+      border-radius: 10px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 25px;
+      align-items: center;
+    }
+    .aurora-info h3 { margin-top: 0; margin-bottom: 10px; }
+    .aurora-info ul { margin: 10px 0 0 20px; padding: 0; }
+    .aurora-info li { margin-bottom: 6px; }
+
+    /* ====== Grid Layouts ====== */
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-top: 20px;
+    }
+
+    /* ====== Cleanup Section ====== */
+    .cleanup-section {
+      background: #fff8e1;
+      padding: 15px;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      margin-top: 30px;
+    }
+
+    /* ====== Loading Indicators ====== */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loading-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+    }
+
+    .loading-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #2c3e50;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .loading-subtext {
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+
+    .btn.loading {
+      background: #bdc3c7 !important;
+      cursor: not-allowed !important;
+      position: relative;
+    }
+
+    .btn.loading::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      margin: auto;
+      border: 2px solid transparent;
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* ====== Responsive ====== */
+    @media (max-width: 768px) {
+      .aurora-section, .two-column {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .btn-large { width: 100%; }
+      body { padding: 10px; }
+      .container { padding: 20px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🌍 CAMS Air Pollution Visualization</h1>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <div class="info-box">
-            <strong>📡 System Status:</strong>
-            <span class="status-indicator {% if cds_ready %}status-ready{% else %}status-error{% endif %}">
-                {% if cds_ready %}✅ CDS API Ready{% else %}❌ CDS API Not Configured{% endif %}
-            </span>
-            {% if not cds_ready %}
-                <p style="margin: 10px 0 0 0; font-size: 14px; color: #721c24;">
-                    Please create a .cdsapirc file with your CDS credentials to enable data download.
-                </p>
-            {% endif %}
-        </div>
-        
-        <div class="two-column">
-            <div class="method-section">
-                <h2>📁 Method 1: Upload File</h2>
-                <p>Upload your own NetCDF (.nc) or ZIP (.zip) file containing CAMS data</p>
-                
-                <form action="/upload" method="post" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="file">Select File (.nc or .zip):</label>
-                        <input type="file" name="file" id="file" accept=".nc,.zip" required>
-                        <div class="file-info">
-                            <strong>Supported formats:</strong> NetCDF (.nc) or ZIP (.zip)<br>
-                            <strong>Maximum size:</strong> 500MB
-                        </div>
-                    </div>
-                    <button type="submit" class="btn">📤 Upload & Analyze</button>
-                </form>
-            </div>
-            
-            <div class="method-section">
-                <h2>📅 Method 2: Download by Date</h2>
-                <p>Download CAMS data for a specific date (requires CDS API)</p>
-                
-                <form action="/download_date" method="post">
-                    <div class="form-group">
-                        <label for="date_input">Select Date (YYYY-MM-DD):</label>
-                        <input type="date" name="date" id="date_input" required
-                            min="2015-01-01" max="{{ current_date }}">
-                    </div>
-                    
-                    <button type="submit" class="btn" id="download_btn" {% if not cds_ready %}disabled{% endif %}>
-                        ⬇️ Download & Analyze
-                    </button>
-                    
-                    {% if not cds_ready %}
-                        <p style="margin-top: 10px; font-size: 14px; color: #721c24;">
-                            CDS API configuration required
-                        </p>
-                    {% endif %}
-                </form>
-            </div>
-        </div>
-        
-        <!-- {% if downloaded_files %}
-        <div class="container">
-            <h2>📦 Previously Downloaded Files</h2>
-            <div class="download-list">
-                {% for file in downloaded_files %}
-                <div class="download-item">
-                    <div>
-                        <strong>{{ file.date }}</strong> 
-                        <span style="color: #666;">({{ "%.1f"|format(file.size_mb) }} MB)</span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %} -->
-        
-            <div class="method-section">
-            <h2>🗂️ Method 3: Choose from Recent Files</h2>
-            <p>Select a previously uploaded or downloaded file for visualization.</p>
-            <form id="recentFileForm" action="" method="get" style="display: flex; gap: 10px; align-items: center;">
-                <select name="recent_file" id="recent_file" required style="flex: 1;">
-                    <option value="" disabled selected>Select a file...</option>
-                    {% for file in recent_files %}
-                        <option value="{{ file.name }}|{{ file.type }}">
-                            {{ file.name }} ({{ 'Downloaded' if file.type == 'download' else 'Uploaded' }})
-                        </option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="btn">Analyze</button>
-            </form>
-        </div>
+  <div class="container">
+    <h1>Air Pollution Analysis Dashboard</h1>
+    <p style="text-align: center; color: #666; margin-bottom: 35px;">
+      Comprehensive air pollution data visualization and forecasting platform
+    </p>
 
-        <div class="container">
-            <h2>📋 How to Use</h2>
-            <ol style="line-height: 1.8;">
-                <li><strong>Choose your method:</strong> Upload your own file or download data by date</li>
-                <li><strong>File Analysis:</strong> The system will detect air pollution variables in your data</li>
-                <li><strong>Variable Selection:</strong> Choose which pollutant to visualize and select pressure level (for atmospheric variables)</li>
-                <li><strong>Visualization:</strong> Generate and view the pollution map over India with your preferred color theme</li>
-            </ol>
-            
-            <div class="info-box">
-                <strong>💡 Supported Variables:</strong>
-                PM2.5, PM10, PM1, NO₂, SO₂, O₃, CO, NO, NH₃, Total Column measurements, and more
-            </div>
-        </div>
-        
-        <div class="cleanup-section">
-            <h3>🧹 Maintenance</h3>
-            <p>Clean up old files to free up disk space</p>
-            <a href="/cleanup" class="btn" style="font-size: 14px; padding: 8px 16px;">Clean Old Files</a>
-        </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- CAMS Data Visualization -->
+  <div class="container">
+    <div class="feature-header">
+      <h2>CAMS Data Visualization</h2>
+      <p>Analyze and visualize historical air pollution data from the Copernicus Atmosphere Monitoring Service.</p>
     </div>
-    
-    <script>
-        document.getElementById('file').addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const maxSize = 500 * 1024 * 1024;
-                if (file.size > maxSize) {
-                    alert('File size exceeds 500MB limit. Please choose a smaller file.');
-                    this.value = '';
-                }
-            }
-        });
-        
-        document.querySelector('form[action="/download_date"]').addEventListener('submit', function(e) {
-            if (!confirm('CAMS data download may take several minutes. Continue?')) {
-                e.preventDefault();
-            }
-        });
-        
-        document.getElementById('recentFileForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const val = document.getElementById('recent_file').value;
-            if (!val) return;
-            const [filename, filetype] = val.split('|');
-            // is_download param: true for download, false for upload
-            const is_download = (filetype === 'download') ? 'true' : 'false';
-            window.location.href = `/analyze/${encodeURIComponent(filename)}?is_download=${is_download}`;
-        });
-    </script>
+
+    <div class="two-column">
+      <div class="method-section">
+        <h2>Method 1: Upload File</h2>
+        <p>Upload your own NetCDF (.nc) or ZIP (.zip) file containing CAMS data.</p>
+
+        <form action="/upload" method="post" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="file">Select File:</label>
+            <input type="file" name="file" id="file" accept=".nc,.zip" required>
+            <div class="file-info">
+              <strong>Supported formats:</strong> NetCDF (.nc), ZIP (.zip)<br>
+              <strong>Max size:</strong> 500 MB
+            </div>
+          </div>
+          <button type="submit" class="btn">Upload & Analyze</button>
+        </form>
+      </div>
+
+      <div class="method-section">
+        <h2>Method 2: Download by Date</h2>
+        <p>Download CAMS data for a specific date (requires CDS API).</p>
+
+        <form action="/download_date" method="post">
+          <div class="form-group">
+            <label for="date_input">Select Date:</label>
+            <input type="date" name="date" id="date_input" required min="2015-01-01" max="{{ current_date }}">
+          </div>
+
+          <button type="submit" class="btn" {% if not cds_ready %}disabled{% endif %}>Download & Analyze</button>
+          {% if not cds_ready %}
+          <p style="margin-top: 10px; font-size: 14px; color: #842029;">CDS API configuration required.</p>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+
+    <div class="method-section">
+    <h2>Method 3: Recent Files</h2>
+    <p>Select from recently downloaded or uploaded CAMS data files.</p>
+    {% if downloaded_files %}
+    <form id="recentFileForm">
+        <div class="form-group">
+        <label for="recent_file">Available Files:</label>
+        <select id="recent_file" name="recent_file" required>
+            <option value="">-- Select a file --</option>
+            {% for file in downloaded_files %}
+            <option value="{{ file.filename }}|{{ 'download' if file.is_download else 'upload' }}">
+                {{ file.date }} — {{ file.filename }} ({{ "%.1f"|format(file.size_mb) }} MB)
+            </option>
+            {% endfor %}
+        </select>
+        </div>
+        <button type="submit" class="btn">Visualize Selected File</button>
+    </form>
+    {% else %}
+    <p style="color: #666; font-style: italic;">No recent files available. Upload or download data first.</p>
+    {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Aurora Prediction Section -->
+  <div class="container">
+    <div class="feature-header aurora-header">
+      <h2>Aurora AI Prediction</h2>
+      <p>Generate 12-hour air pollution forecasts using Microsoft's Aurora AI model.</p>
+    </div>
+
+    <div class="aurora-section">
+      <div class="aurora-info">
+        <h3>Aurora 12-hour Forecasting</h3>
+        <p>Generate predictions for weather variables and air pollutants using Microsoft's Aurora Air Pollution model.</p>
+        <ul>
+          <li>12-hour forecast horizon</li>
+          <li>Multiple pollutant predictions</li>
+          <li>High-resolution spatial coverage</li>
+          <li>Real-time visualization</li>
+        </ul>
+      </div>
+      <div class="aurora-action">
+        <a href="{{ url_for('aurora_predict') }}" class="btn btn-primary btn-large">Generate Aurora Prediction</a>
+        <p style="margin-top: 15px; color: #555; font-size: 14px;">Select reference date and generate forecasts.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info and Maintenance -->
+  <div class="container">
+    <div class="two-column">
+      <div>
+        <h3>How to Use CAMS Visualization</h3>
+        <ol style="line-height: 1.8;">
+          <li><strong>Choose your method:</strong> Upload file, download by date, or select recent files.</li>
+          <li><strong>File Analysis:</strong> System detects air pollution variables in your data.</li>
+          <li><strong>Variable Selection:</strong> Choose pollutant and pressure level for visualization.</li>
+          <li><strong>Visualization:</strong> Generate pollution maps with customizable color themes.</li>
+        </ol>
+      </div>
+      <div>
+        <h3>Supported Variables</h3>
+        <div class="info-box">
+          <strong>Surface Pollutants:</strong> PM2.5, PM10, NO₂, SO₂, O₃, CO, NO, NH₃<br>
+          <strong>Atmospheric:</strong> Total Column, 3D atmospheric profiles<br>
+          <strong>Meteorological:</strong> Temperature, Wind, Pressure
+        </div>
+      </div>
+    </div>
+
+    <div class="cleanup-section">
+      <h3>Maintenance</h3>
+      <p>Clean up old files to free disk space and maintain performance.</p>
+      <a href="/cleanup" class="btn btn-small">Clean Old Files</a>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text" id="loadingText">Processing...</div>
+      <div class="loading-subtext" id="loadingSubtext">Please wait while we process your request.</div>
+    </div>
+  </div>
+
+  <script>
+    // Loading indicator functions
+    function showLoading(text, subtext) {
+      document.getElementById('loadingText').textContent = text;
+      document.getElementById('loadingSubtext').textContent = subtext;
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    function setButtonLoading(button, isLoading, originalText) {
+      if (isLoading) {
+        button.classList.add('loading');
+        button.disabled = true;
+        button.textContent = '';
+      } else {
+        button.classList.remove('loading');
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+
+    // File size validation
+    document.getElementById('file').addEventListener('change', function() {
+      const file = this.files[0];
+      if (file && file.size > 500 * 1024 * 1024) {
+        alert('File size exceeds 500MB limit.');
+        this.value = '';
+      }
+    });
+
+    // Upload form loading
+    document.querySelector('form[action="/upload"]').addEventListener('submit', function(e) {
+      const fileInput = document.getElementById('file');
+      if (!fileInput.files[0]) {
+        alert('Please select a file first.');
+        e.preventDefault();
+        return;
+      }
+
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      setButtonLoading(submitBtn, true, originalText);
+      showLoading('Uploading File...', 'Processing your file and extracting data. This may take a few moments.');
+    });
+
+    // Download form loading
+    document.querySelector('form[action="/download_date"]').addEventListener('submit', function(e) {
+      if (!confirm('CAMS data download may take several minutes. Continue?')) {
+        e.preventDefault();
+        return;
+      }
+
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      setButtonLoading(submitBtn, true, originalText);
+      showLoading('Downloading CAMS Data...', 'Downloading atmospheric data from Copernicus. This may take 2-5 minutes.');
+    });
+
+    // Recent files form loading
+    const recentFileForm = document.getElementById('recentFileForm');
+    if (recentFileForm) {
+      recentFileForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const val = document.getElementById('recent_file').value;
+        if (!val) {
+          alert('Please select a file to visualize.');
+          return;
+        }
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        setButtonLoading(submitBtn, true, originalText);
+        showLoading('Loading File...', 'Preparing file for variable selection.');
+
+        const [filename, filetype] = val.split('|');
+        const is_download = (filetype === 'download') ? 'true' : 'false';
+        window.location.href = `/analyze/${encodeURIComponent(filename)}?is_download=${is_download}`;
+      });
+    }
+
+    // Aurora prediction button loading
+    document.querySelectorAll('a[href*="aurora_predict"]').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        showLoading('Loading Aurora Prediction...', 'Preparing the Aurora AI prediction interface.');
+      });
+    });
+  </script>
 </body>
 </html>

@@ -164,6 +164,27 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .btn.loading {
+            background: #bdc3c7 !important;
+            cursor: not-allowed !important;
+            position: relative;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
         @media (max-width: 768px) {
             .button-group {
                 flex-direction: column;
@@ -174,8 +195,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔬 Variable Selection</h1>
-        
+        <h1>Variable Selection</h1>
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -183,9 +204,9 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
+
         <div class="breadcrumb">
-            <a href="{{ url_for('index') }}">🏠 Home</a> → Variable Selection
+            <a href="{{ url_for('index') }}">Home</a> → Variable Selection
         </div>
         
         <form action="/visualize" method="post" id="visualizeForm">
@@ -193,7 +214,7 @@
             <input type="hidden" name="is_download" value="{{ is_download }}">
             
             <div class="form-section">
-                <h2>📊 Select Air Pollution Variable</h2>
+                <h2>Select Air Pollution Variable</h2>
                 <p>Found {{ variables|length }} air pollution variable(s) in your data. Select one below:</p>
                 
                 <div class="form-group">
@@ -219,7 +240,7 @@
             </div>
 
             <div class="pressure-section" id="pressureSection" style="display: none;">
-                <h3>🌡️ Pressure Level Selection</h3>
+                <h3>Pressure Level Selection</h3>
                 <p>This is an atmospheric variable. Please select a pressure level:</p>
                 
                 <div class="form-group">
@@ -241,14 +262,14 @@
                         <option value="1000">1000 hPa (Surface Level)</option>
                     </select>
                     <div class="info-text">
-                        💡 <strong>Tip:</strong> 850 hPa is commonly used for atmospheric analysis (pre-selected)
+                        <strong>Tip:</strong> 850 hPa is commonly used for atmospheric analysis (pre-selected)
                     </div>
                 </div>
             </div>
-            
+
             <!-- Time Selection -->
             <div class="form-section" id="timeSection" style="display: none;">
-                <h3>⏰ Time Selection</h3>
+                <h3>Time Selection</h3>
                 <p>Multiple time steps available. Please select a time:</p>
                 
                 <div class="form-group">
@@ -257,13 +278,13 @@
                         <option value="">-- Loading available times --</option>
                     </select>
                     <div class="info-text">
-                        💡 <strong>Tip:</strong> Latest time is usually pre-selected
+                        <strong>Tip:</strong> Latest time is usually pre-selected
                     </div>
                 </div>
             </div>
-            
+
             <div class="form-section">
-                <h2>🎨 Color Theme</h2>
+                <h2>Color Theme</h2>
                 <div class="form-group">
                     <label for="color_theme">Select Color Scheme:</label>
                     <select name="color_theme" id="color_theme" onchange="updateColorPreview()">
@@ -286,12 +307,12 @@
                 <div class="button-group">
                     <a href="{{ url_for('index') }}" class="btn btn-secondary">← Back to Home</a>
                     <button type="submit" class="btn" id="submitBtn">
-                        🗺️ Generate Map Visualization
+                        Generate Map Visualization
                     </button>
                 </div>
-                
+
                 <div class="loading-message" id="loadingMessage" style="display: none;">
-                    <p>🔄 Generating map visualization... This may take a moment.</p>
+                    <p>Generating map visualization... This may take a moment.</p>
                     <div class="spinner"></div>
                 </div>
             </div>
@@ -458,7 +479,7 @@
                 e.preventDefault();
                 return;
             }
-            
+
             // Check if atmospheric variable has pressure level selected
             const varType = document.getElementById('variable').selectedOptions[0].dataset.type;
             if (varType === 'atmospheric') {
@@ -476,11 +497,20 @@
                 e.preventDefault();
                 return;
             }
-            
-            // Show loading message
-            document.getElementById('loadingMessage').style.display = 'block';
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').textContent = '⏳ Generating...';
+
+            // Show loading message with enhanced text
+            const loadingMessage = document.getElementById('loadingMessage');
+            const submitBtn = document.getElementById('submitBtn');
+
+            loadingMessage.innerHTML = `
+                <p><strong>Generating map visualization...</strong></p>
+                <p>Processing ${selectedVar} data and creating interactive map. This may take 30-60 seconds.</p>
+                <div class="spinner"></div>
+            `;
+            loadingMessage.style.display = 'block';
+            submitBtn.disabled = true;
+            submitBtn.textContent = '';
+            submitBtn.classList.add('loading');
         });
         
         // Auto-select first variable if only one available

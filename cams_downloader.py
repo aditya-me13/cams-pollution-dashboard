@@ -50,14 +50,39 @@ class CAMSDownloader:
                 
                 print(url, key)
                 if url and key:
-                    self.client = cdsapi.Client(key=key, url=url)
-                    print("✅ CDS API client initialized from .cdsapirc")
+                    # Initialize with timeout to prevent hanging
+                    import signal
+                    def timeout_handler(signum, frame):
+                        raise TimeoutError("CDS API initialization timeout")
+
+                    signal.signal(signal.SIGALRM, timeout_handler)
+                    signal.alarm(5)  # 5-second timeout
+
+                    try:
+                        self.client = cdsapi.Client(key=key, url=url)
+                        signal.alarm(0)  # Cancel the alarm
+                        print("✅ CDS API client initialized from .cdsapirc")
+                    except TimeoutError:
+                        signal.alarm(0)
+                        raise TimeoutError("CDS API client initialization timed out")
                 else:
                     raise ValueError("Could not parse URL or key from .cdsapirc file")
             else:
                 # Try default initialization (will look for environment variables)
-                self.client = cdsapi.Client()
-                print("✅ CDS API client initialized with default settings")
+                import signal
+                def timeout_handler(signum, frame):
+                    raise TimeoutError("CDS API initialization timeout")
+
+                signal.signal(signal.SIGALRM, timeout_handler)
+                signal.alarm(5)  # 5-second timeout
+
+                try:
+                    self.client = cdsapi.Client()
+                    signal.alarm(0)  # Cancel the alarm
+                    print("✅ CDS API client initialized with default settings")
+                except TimeoutError:
+                    signal.alarm(0)
+                    raise TimeoutError("CDS API client initialization timed out")
                 
         except Exception as e:
             print(f"⚠️  Warning: Could not initialize CDS API client: {str(e)}")
@@ -270,17 +295,25 @@ class CAMSDownloader:
     def list_downloaded_files(self):
         """List all downloaded CAMS files"""
         downloaded_files = []
-        
+
         for zip_file in self.download_dir.glob("*-cams.nc.zip"):
             date_str = zip_file.stem.replace("-cams.nc", "")
+            # Check if extracted file exists
+            extracted_file = self.extracted_dir / f"{date_str}-cams.nc"
+            if extracted_file.exists():
+                filename = extracted_file.name
+            else:
+                filename = f"{date_str}-cams.nc"  # Fallback filename
+
             file_info = {
                 'date': date_str,
+                'filename': filename,  # Add filename property
                 'zip_path': str(zip_file),
                 'size_mb': zip_file.stat().st_size / (1024 * 1024),
                 'downloaded': zip_file.stat().st_mtime
             }
             downloaded_files.append(file_info)
-        
+
         # Sort by date (newest first)
         downloaded_files.sort(key=lambda x: x['date'], reverse=True)
         return downloaded_files
